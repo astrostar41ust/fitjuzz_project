@@ -1,5 +1,57 @@
 const exerciseModel = require('../models/exerciseModel');
 const { exerciseDetailModel } = require('../models/exerciseDetail');
+const fs = require('fs');
+const path = require('path');
+
+// cache directory
+const CACHE_DIR = path.join(__dirname, '../cache');
+const CACHE_DURATION = 24 * 60 * 60 * 1000;
+
+// create cache directory if it doesn't exist
+if (!fs.existsSync(CACHE_DIR)) {
+  fs.mkdirSync(CACHE_DIR, { recursive: true });
+}
+
+// function to read data from cache
+const readFromCache = (cacheKey) => {
+  const cachePath = path.join(CACHE_DIR, `${cacheKey}.json`);
+  
+  try {
+    if (fs.existsSync(cachePath)) {
+      const cacheData = JSON.parse(fs.readFileSync(cachePath, 'utf8'));
+      const now = new Date().getTime();
+      
+      // check if cache is expired
+      if (now - cacheData.timestamp < CACHE_DURATION) {
+        console.log(`[CACHE] use data from cache: ${cacheKey}`);
+        return cacheData.data;
+      } else {
+        console.log(`[CACHE] cache expired: ${cacheKey}`);
+      }
+    }
+  } catch (error) {
+    console.error(`[CACHE] error reading cache ${cacheKey}:`, error);
+  }
+  
+  return null;
+};
+
+// function to write data to cache
+const writeToCache = (cacheKey, data) => {
+  const cachePath = path.join(CACHE_DIR, `${cacheKey}.json`);
+  
+  try {
+    const cacheData = {
+      timestamp: new Date().getTime(),
+      data: data
+    };
+    
+    fs.writeFileSync(cachePath, JSON.stringify(cacheData));
+    console.log(`[CACHE] save data to cache: ${cacheKey}`);
+  } catch (error) {
+    console.error(`[CACHE] error writing cache ${cacheKey}:`, error);
+  }
+};
 
 const exerciseDetailController = {
   getExerciseDetails: async (req, res) => {
@@ -7,7 +59,15 @@ const exerciseDetailController = {
       const exerciseId = req.params.id;
       console.log(`[DEBUG] Received request for exercise details with ID: ${exerciseId}`);
       
-      // find exercise by id
+      // check cache before
+      const cacheKey = `exercise_detail_${exerciseId}`;
+      const cachedData = readFromCache(cacheKey);
+      if (cachedData) {
+        console.log(`[DEBUG] Returning cached exercise details for ID: ${exerciseId}`);
+        return res.json(cachedData);
+      }
+      
+      // if no data in cache, find exercise by id
       const exercise = await exerciseModel.findById(exerciseId);
       console.log(`[DEBUG] Exercise found:`, exercise ? 'Yes' : 'No');
       
@@ -40,6 +100,9 @@ const exerciseDetailController = {
         targetMuscles: exerciseDetail.targetMuscles || getDefaultTargetMuscles(exercise.category),
         tips: exerciseDetail.tips
       };
+      
+      // save data to cache
+      writeToCache(cacheKey, exerciseDetails);
       
       console.log(`[DEBUG] Sending exercise details back to client`);
       res.json(exerciseDetails);

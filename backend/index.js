@@ -9,6 +9,7 @@ const otpRoute = require("./routes/otpRoute");
 const exerciseRoute = require("./routes/exerciseRoute");
 const workoutRoute = require("./routes/workoutRoute");
 const guideRoute = require("./routes/guideRoute");
+const exerciseApiRoute = require("./routes/exerciseApiRoute");
 const app = express();
 app.use(express.json());
 app.use(cors());
@@ -31,56 +32,180 @@ mongoose
         name: "Push-up",
         description: "A bodyweight exercise for chest and arms.",
         category: "chest",
+        picture: "https://www.burnthefatinnercircle.com/members/images/1683.jpg",
+        target: "Pectoralis Major",
+        secondaryMuscles: ["Deltoid", "Triceps"],
+        instructions: [
+          "ท่าเริ่มต้น นอนคว่ำกับพื้น มือวางข้างลำตัวระดับไหล่",
+          "ยกตัวขึ้น ดันพื้นโดยใช้แขนและหน้าอก พยายามให้ลำตัวตรง",
+          "หย่อนตัวลงจนหน้าอกเกือบแตะพื้น",
+          "ดันตัวกลับขึ้นไปยังท่าเริ่มต้น",
+          "ทำซ้ำตามจำนวนครั้งที่ต้องการ"
+        ],
+        equipment: "Bodyweight"
       },
       {
         name: "Pull-up",
         description: "A bodyweight exercise for the back.",
         category: "back",
+        picture: "https://www.burnthefatinnercircle.com/members/images/1684.jpg",
+        target: "Latissimus Dorsi",
+        secondaryMuscles: ["Biceps", "Rhomboids"],
+        instructions: [
+          "จับราวด้วยมือสองข้าง มือห่างกันกว้างกว่าไหล่",
+          "ห้อยตัวลงให้แขนเหยียดตรง",
+          "ดึงตัวขึ้นจนคางอยู่เหนือราว",
+          "ลดตัวลงช้าๆ กลับสู่ท่าเริ่มต้น",
+          "ทำซ้ำตามจำนวนครั้งที่ต้องการ"
+        ],
+        equipment: "Pull-up Bar"
       },
       {
         name: "Bicep Curl",
         description: "An exercise for strengthening the arms.",
         category: "arms",
+        picture: "https://www.burnthefatinnercircle.com/members/images/1685.jpg",
+        target: "Biceps Brachii",
+        secondaryMuscles: ["Forearm", "Brachialis"],
+        instructions: [
+          "ยืนตรง ถือดัมเบลด้วยมือสองข้าง แขนเหยียดตรง",
+          "งอข้อศอกยกดัมเบลขึ้นมาที่หัวไหล่",
+          "ลดดัมเบลลงช้าๆ กลับสู่ท่าเริ่มต้น",
+          "ทำซ้ำตามจำนวนครั้งที่ต้องการ"
+        ],
+        equipment: "Dumbbells"
       },
       {
         name: "Sit-up",
         description: "A core exercise for the abs.",
         category: "abs",
+        picture: "https://www.burnthefatinnercircle.com/members/images/1689.jpg",
+        target: "Rectus Abdominis",
+        secondaryMuscles: ["Hip Flexors", "Obliques"],
+        instructions: [
+          "นอนหงาย งอเข่า เท้าวางราบกับพื้น",
+          "มือวางไขว้ที่หน้าอกหรือแตะที่ข้างหู",
+          "ยกลำตัวส่วนบนขึ้นจนข้อศอกแตะหรือเลยหัวเข่า",
+          "ลดตัวลงช้าๆ กลับสู่ท่าเริ่มต้น",
+          "ทำซ้ำตามจำนวนครั้งที่ต้องการ"
+        ],
+        equipment: "Bodyweight"
       },
       {
         name: "Squat",
         description: "A lower body exercise for legs and glutes.",
         category: "leg",
+        picture: "https://www.burnthefatinnercircle.com/members/images/1687.jpg",
+        target: "Quadriceps",
+        secondaryMuscles: ["Hamstrings", "Glutes", "Calves"],
+        instructions: [
+          "ยืนตรง เท้าห่างกันประมาณความกว้างของไหล่",
+          "ย่อตัวลงโดยให้สะโพกถอยไปด้านหลัง เหมือนนั่งเก้าอี้",
+          "ย่อตัวลงจนต้นขาขนานกับพื้น หรือต่ำกว่าหากทำได้",
+          "ดันตัวกลับขึ้นสู่ท่าเริ่มต้น",
+          "ทำซ้ำตามจำนวนครั้งที่ต้องการ"
+        ],
+        equipment: "Bodyweight"
       },
       {
         name: "Bench Press",
         description: "A strength exercise for the chest and triceps.",
         category: "chest",
+        picture: "https://www.burnthefatinnercircle.com/members/images/1683.jpg",
+        target: "Pectoralis Major",
+        secondaryMuscles: ["Deltoid", "Triceps"],
+        instructions: [
+          "นอนหงายบนม้านั่ง ตาอยู่ใต้บาร์",
+          "จับบาร์กว้างกว่าไหล่เล็กน้อย",
+          "ยกบาร์ออกจากที่วาง",
+          "ลดบาร์ลงช้าๆ จนแตะหน้าอก",
+          "ดันบาร์ขึ้นจนแขนเหยียดตรง",
+          "ทำซ้ำตามจำนวนครั้งที่ต้องการ"
+        ],
+        equipment: "Barbell, Bench"
       },
       {
         name: "Deadlift",
         description: "A compound exercise for the back and legs.",
         category: "back",
+        picture: "https://www.burnthefatinnercircle.com/members/images/1684.jpg",
+        target: "Erector Spinae",
+        secondaryMuscles: ["Gluteus Maximus", "Hamstrings", "Quadriceps"],
+        instructions: [
+          "ยืนหน้าบาร์เบล เท้าห่างกันประมาณความกว้างของสะโพก",
+          "ย่อตัวลง จับบาร์ด้วยมือทั้งสองข้าง",
+          "ยืดอกขึ้น หลังตรง",
+          "ยกบาร์ขึ้นโดยใช้พลังจากขาและสะโพก",
+          "ยืนตรง บีบก้น",
+          "ลดบาร์ลงช้าๆ กลับสู่พื้น",
+          "ทำซ้ำตามจำนวนครั้งที่ต้องการ"
+        ],
+        equipment: "Barbell"
       },
       {
         name: "Tricep Dip",
         description: "An exercise for triceps.",
         category: "arms",
+        picture: "https://www.burnthefatinnercircle.com/members/images/1685.jpg",
+        target: "Triceps Brachii",
+        secondaryMuscles: ["Chest", "Shoulders"],
+        instructions: [
+          "นั่งบนเก้าอี้หรือม้านั่ง มือจับขอบ",
+          "เลื่อนสะโพกออกจากขอบ",
+          "ลดตัวลงโดยงอข้อศอก",
+          "ลงจนแขนท่อนบนขนานกับพื้น",
+          "ดันตัวขึ้นกลับสู่ท่าเริ่มต้น",
+          "ทำซ้ำตามจำนวนครั้งที่ต้องการ"
+        ],
+        equipment: "Bench or Chair"
       },
       {
         name: "Leg Press",
         description: "A machine-based leg exercise for quads and glutes.",
         category: "leg",
+        picture: "https://www.burnthefatinnercircle.com/members/images/1687.jpg",
+        target: "Quadriceps",
+        secondaryMuscles: ["Hamstrings", "Glutes"],
+        instructions: [
+          "นั่งบนเครื่อง leg press วางเท้าบนแผ่นกดห่างกันเท่าความกว้างของไหล่",
+          "ปลดตัวล็อคและงอเข่าช้าๆ ให้แผ่นกดเคลื่อนลงมา",
+          "งอเข่าจนมุมประมาณ 90 องศา",
+          "ดันขากลับไปจนขาเกือบเหยียดตรง ระวังอย่าล็อคเข่า",
+          "ทำซ้ำตามจำนวนครั้งที่ต้องการ"
+        ],
+        equipment: "Leg Press Machine"
       },
       {
         name: "Plank",
         description: "A core strengthening exercise for abs and lower back.",
         category: "abs",
+        picture: "https://www.burnthefatinnercircle.com/members/images/1689.jpg",
+        target: "Core",
+        secondaryMuscles: ["Shoulders", "Glutes"],
+        instructions: [
+          "เริ่มในท่าคล้ายท่าดันพื้น แต่ให้น้ำหนักอยู่บนปลายแขนท่อนล่าง",
+          "ข้อศอกอยู่ใต้ไหล่พอดี",
+          "ยกสะโพกขึ้นให้ร่างกายเป็นเส้นตรงจากศีรษะถึงส้นเท้า",
+          "เกร็งกล้ามเนื้อท้อง",
+          "คงท่านี้ไว้ตามเวลาที่กำหนด"
+        ],
+        equipment: "Bodyweight"
       },
       {
         name: "Fly",
         description: "A chest exercise for middle and inner chest",
         category: "chest",
+        picture: "https://www.burnthefatinnercircle.com/members/images/1683.jpg",
+        target: "Pectoralis Major",
+        secondaryMuscles: ["Deltoid", "Biceps"],
+        instructions: [
+          "นอนหงายบนม้านั่ง หรือบนลูกบอลออกกำลังกาย",
+          "ถือดัมเบลด้วยมือทั้งสองข้าง ยื่นแขนขึ้นเหนืออก",
+          "ลดแขนออกด้านข้างเป็นรูปครึ่งวงกลม จนรู้สึกถึงการยืดที่หน้าอก",
+          "ยกดัมเบลกลับขึ้นมาในท่าเริ่มต้น บีบหน้าอก",
+          "ทำซ้ำตามจำนวนครั้งที่ต้องการ"
+        ],
+        equipment: "Dumbbells, Bench"
       },
     ];
 
@@ -249,6 +374,7 @@ app.use("/api/user", otpRoute);
 app.use("/api/user", exerciseRoute);
 app.use("/api/user", workoutRoute);
 app.use("/api/user", guideRoute);
+app.use("/api/user", exerciseApiRoute);
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

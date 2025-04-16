@@ -30,28 +30,36 @@ const ExerciseDetailsModal = ({ visible, exercise, onClose }) => {
   const flatListRef = useRef(null);
 
   useEffect(() => {
-    if (visible && exercise && exercise._id) {
-      fetchExerciseDetails(exercise._id);
+    if (visible && exercise) {
+      // Data may come from RapidAPI or original database
+      // No need to call API again as we already have data from openExerciseDetails
+      setDetails(exercise);
     }
   }, [visible, exercise]);
 
+  // Edit fetchExerciseDetails function to use only when additional data is needed
   const fetchExerciseDetails = async (exerciseId) => {
+    if (!exerciseId) return;
+    
     setLoading(true);
     setError(null);
     
     try {
-      console.log('Fetching exercise details...');
+      console.log('Fetching additional exercise details...');
       console.log('Exercise ID:', exerciseId);
       console.log('API URL:', `${process.env.EXPO_PUBLIC_ENDPOINT_API}/api/user/getExerciseDetails/${exerciseId}`);
       
+      // Call original API only when necessary
       const response = await axios.get(`${process.env.EXPO_PUBLIC_ENDPOINT_API}/api/user/getExerciseDetails/${exerciseId}`);
-      console.log('Received data:', response.data);
-      setDetails(response.data);
+      console.log('Received additional data:', response.data);
+      
+      // Merge data from API with existing data
+      setDetails({...exercise, ...response.data});
       setLoading(false);
     } catch (err) {
-      console.error('Error fetching exercise details:', err);
-      console.error('Error response:', err.response?.data);
-      setError('ไม่สามารถโหลดข้อมูลท่าออกกำลังกายได้ กรุณาลองอีกครั้ง');
+      console.error('Error fetching additional exercise details:', err);
+      // In case of error, use existing data
+      setDetails(exercise);
       setLoading(false);
     }
   };
@@ -62,45 +70,95 @@ const ExerciseDetailsModal = ({ visible, exercise, onClose }) => {
     }
   };
 
-  // กำหนดชุดข้อมูลกล้ามเนื้อเริ่มต้นกรณีที่ไม่มีข้อมูลจาก API
+  // Define default muscle data if no data from API
   const defaultMusclesWorked = {
     'chest': {
-      primary: ['กล้ามเนื้อหน้าอก', 'ไหล่'],
-      secondary: ['แขนส่วนหลัง', 'แขนส่วนกลาง']
+      primary: ['Chest muscles', 'Shoulders'],
+      secondary: ['Triceps', 'Mid-arm']
     },
     'back': {
-      primary: ['กล้ามเนื้อหลังส่วนบน', 'สะบัก'],
-      secondary: ['ไบเซ็ป', 'กล้ามเนื้อหลังส่วนล่าง']
+      primary: ['Upper back', 'Scapula'],
+      secondary: ['Biceps', 'Lower back']
     },
     'shoulders': {
-      primary: ['กล้ามเนื้อไหล่'],
-      secondary: ['กล้ามเนื้อสะบัก', 'แขนส่วนหลัง']
+      primary: ['Shoulder muscles'],
+      secondary: ['Scapula', 'Triceps']
     },
     'arms': {
-      primary: ['ไบเซ็ป', 'ไตรเซ็ป'],
-      secondary: ['กล้ามเนื้อปลายแขน', 'ไหล่']
+      primary: ['Biceps', 'Triceps'],
+      secondary: ['Forearms', 'Shoulders']
     },
     'legs': {
-      primary: ['ต้นขาด้านหน้า', 'ต้นขาด้านหลัง', 'สะโพก'],
-      secondary: ['น่อง', 'หลังส่วนล่าง']
+      primary: ['Quadriceps', 'Hamstrings', 'Glutes'],
+      secondary: ['Calves', 'Lower back']
     },
     'core': {
-      primary: ['กล้ามท้องตรงกลาง', 'กล้ามท้องด้านข้าง'],
-      secondary: ['กล้ามท้องส่วนลึก', 'หลังส่วนล่าง']
+      primary: ['Central abdominals', 'Obliques'],
+      secondary: ['Deep abdominals', 'Lower back']
+    },
+    'abs': {
+      primary: ['Central abdominals', 'Obliques'],
+      secondary: ['Deep abdominals', 'Lower back']
+    },
+    'cardio': {
+      primary: ['Cardiovascular system'],
+      secondary: ['Legs', 'Core']
+    },
+    'full body': {
+      primary: ['Full body', 'Multiple muscles'],
+      secondary: ['Cardiovascular system']
+    },
+    'lower arms': {
+      primary: ['Forearms', 'Wrists'],
+      secondary: ['Biceps']
+    },
+    'lower legs': {
+      primary: ['Calves', 'Ankles'],
+      secondary: ['Thighs']
+    },
+    'neck': {
+      primary: ['Neck muscles'],
+      secondary: ['Shoulders', 'Upper back']
+    },
+    'upper arms': {
+      primary: ['Biceps', 'Triceps'],
+      secondary: ['Shoulders', 'Forearms']
+    },
+    'upper legs': {
+      primary: ['Quadriceps', 'Hamstrings'],
+      secondary: ['Glutes', 'Core']
+    },
+    'waist': {
+      primary: ['Central abdominals', 'Obliques'],
+      secondary: ['Lower back', 'Glutes']
     }
   };
 
-  // หากไม่มีข้อมูลกล้ามเนื้อจาก API ให้ใช้ข้อมูลเริ่มต้นตามหมวดหมู่
+  // If no muscle data from API, use default data based on category
   const getMusclesWorked = () => {
+    // For data from RapidAPI
+    if (exercise?.target || exercise?.secondaryMuscles) {
+      const primary = exercise.target ? [exercise.target] : [];
+      const secondary = Array.isArray(exercise.secondaryMuscles) 
+        ? exercise.secondaryMuscles 
+        : [];
+      
+      return {
+        primary,
+        secondary
+      };
+    }
+    
+    // For data from original API
     if (details && details.targetMuscles) {
-      // ถ้า targetMuscles เป็น object และมี primary, secondary
+      // If targetMuscles is an object with primary, secondary
       if (typeof details.targetMuscles === 'object' && details.targetMuscles.primary) {
         return details.targetMuscles;
       }
       
-      // ถ้า targetMuscles เป็น string ให้แปลงเป็น object
+      // If targetMuscles is a string, convert to object
       if (typeof details.targetMuscles === 'string') {
-        // แยกข้อความโดยใช้เครื่องหมาย , และนำข้อมูลไปใส่ใน primary
+        // Split text using , and put data in primary
         const muscleList = details.targetMuscles.split(',').map(m => m.trim());
         return {
           primary: muscleList.slice(0, Math.ceil(muscleList.length / 2)),
@@ -109,7 +167,7 @@ const ExerciseDetailsModal = ({ visible, exercise, onClose }) => {
       }
     }
     
-    // ตรวจสอบว่าอาจจะมีชื่อ property อื่น
+    // Check if there might be other property names
     if (details && details.muscles) {
       return details.muscles;
     }
@@ -118,9 +176,9 @@ const ExerciseDetailsModal = ({ visible, exercise, onClose }) => {
     return defaultMusclesWorked[category] || defaultMusclesWorked['chest'];
   };
   
-  // ฟังก์ชันสำหรับรับ URL รูปภาพแสดงกล้ามเนื้อตามหมวดหมู่
+  // Function to get muscle image URL based on category
   const getMuscleImageUrl = () => {
-    // ใช้ muscleImageUrl หรือ muscleImage จากข้อมูลรายละเอียดเป็นอันดับแรก
+    // Use muscleImageUrl or muscleImage from details first
     if (details && details.muscleImageUrl) {
       return details.muscleImageUrl;
     }
@@ -129,7 +187,7 @@ const ExerciseDetailsModal = ({ visible, exercise, onClose }) => {
       return details.muscleImage;
     }
     
-    // ถ้าไม่มีข้อมูลจากรายละเอียด ใช้รูปตามประเภทกล้ามเนื้อ
+    // If no data from details, use image by muscle type
     const muscleImages = {
       'chest': 'https://images.unsplash.com/photo-1585842378054-ee2e52f94ba2',
       'back': 'https://images.unsplash.com/photo-1600677396660-e090697d7638',
@@ -137,46 +195,60 @@ const ExerciseDetailsModal = ({ visible, exercise, onClose }) => {
       'arms': 'https://images.unsplash.com/photo-1590507621108-433608c97823',
       'legs': 'https://images.unsplash.com/photo-1434682881908-b43d0467b798',
       'abs': 'https://images.unsplash.com/photo-1577221084712-45b0445d2b00',
-      'core': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b'
+      'core': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b',
+      'cardio': 'https://images.unsplash.com/photo-1538805060514-97d9cc17730c',
+      'full body': 'https://images.unsplash.com/photo-1549060279-7e168fcee0c2',
+      'lower arms': 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e',
+      'lower legs': 'https://images.unsplash.com/photo-1562771379-eafdca7a02f8',
+      'neck': 'https://images.unsplash.com/photo-1607332292242-77fd37e70aee',
+      'upper arms': 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61',
+      'upper legs': 'https://images.unsplash.com/photo-1574680178050-55c6a6a96e0a',
+      'waist': 'https://images.unsplash.com/photo-1571019613576-2b22c76fd955'
     };
     
     const category = exercise?.category?.toLowerCase() || 'chest';
     return muscleImages[category] || muscleImages['chest'];
   };
 
-  // ข้อมูลขั้นตอนการทำท่าออกกำลังกาย
+  // Exercise instruction steps
   const getInstructions = () => {
+    // Check data from RapidAPI first
+    if (exercise?.instructions && Array.isArray(exercise.instructions)) {
+      return exercise.instructions;
+    }
+    
+    // Check data from original database
     if (details?.steps && Array.isArray(details.steps)) {
       return details.steps;
     } else if (details?.howTo && Array.isArray(details.howTo)) {
       return details.howTo;
     } else {
       return [
-        "เริ่มต้นด้วยท่ายืนหรือนั่งที่มั่นคง",
-        "จัดท่าทางให้ถูกต้องตามลักษณะของท่าที่ต้องการออกกำลังกาย",
-        "ทำการออกกำลังกายด้วยท่าที่ถูกต้อง โดยระวังไม่ให้บาดเจ็บ",
-        "ทำซ้ำตามจำนวนครั้งที่ต้องการในแต่ละเซต",
-        "พักระหว่างเซตประมาณ 30-60 วินาที ก่อนทำเซตต่อไป"
+        "Start with a stable standing or sitting position",
+        "Position yourself correctly according to the exercise you want to do",
+        "Perform the exercise with proper form, being careful not to get injured",
+        "Repeat for the desired number of reps in each set",
+        "Rest between sets for about 30-60 seconds before proceeding to the next set"
       ];
     }
   };
 
-  // Render slide items (รูปภาพท่า และ รูปภาพกล้ามเนื้อ)
+  // Render slide items (exercise image and muscle image)
   const renderImageItem = ({ item, index }) => {
-    console.log('Rendering image item', index);
-    console.log('Details available:', details ? 'Yes' : 'No');
-    if (details) {
-      console.log('Picture1:', details.picture1);
-      console.log('Picture2:', details.picture2);
+    let imageUrl;
+    
+    if (index === 0) {
+      // For exercise image
+      imageUrl = exercise?.gifUrl || exercise?.picture || details?.picture1 || getDefaultImageByCategory();
+    } else {
+      // For muscle image
+      imageUrl = details?.picture2 || getMuscleImageUrl();
     }
     
     return (
-      <View style={[styles.slideItemContainer, { width: width * 0.85 }]}>
+      <View style={[styles.slideItemContainer]}>
         <Image
-          source={{ uri: index === 0 
-            ? (details?.picture1 || exercise?.picture || getDefaultImageByCategory())
-            : (details?.picture2 || getMuscleImageUrl())
-          }}
+          source={{ uri: imageUrl }}
           style={styles.slideImage}
           resizeMode="contain"
         />
@@ -184,7 +256,7 @@ const ExerciseDetailsModal = ({ visible, exercise, onClose }) => {
     );
   };
 
-  // รูปเริ่มต้นสำหรับหน้าแรกตาม category
+  // Default image for first page by category
   const getDefaultImageByCategory = () => {
     const defaultImages = {
       'chest': 'https://images.unsplash.com/photo-1571019613576-2b22c76fd955',
@@ -192,7 +264,16 @@ const ExerciseDetailsModal = ({ visible, exercise, onClose }) => {
       'shoulders': 'https://images.unsplash.com/photo-1581122584612-713f89daa8eb',
       'arms': 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61',
       'legs': 'https://images.unsplash.com/photo-1574680178050-55c6a6a96e0a',
-      'core': 'https://images.unsplash.com/photo-1571019613576-2b22c76fd955'
+      'core': 'https://images.unsplash.com/photo-1571019613576-2b22c76fd955',
+      'abs': 'https://images.unsplash.com/photo-1571019613576-2b22c76fd955',
+      'cardio': 'https://images.unsplash.com/photo-1538805060514-97d9cc17730c',
+      'full body': 'https://images.unsplash.com/photo-1549060279-7e168fcee0c2',
+      'lower arms': 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61',
+      'lower legs': 'https://images.unsplash.com/photo-1574680178050-55c6a6a96e0a',
+      'neck': 'https://images.unsplash.com/photo-1607332292242-77fd37e70aee',
+      'upper arms': 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61',
+      'upper legs': 'https://images.unsplash.com/photo-1574680178050-55c6a6a96e0a',
+      'waist': 'https://images.unsplash.com/photo-1571019613576-2b22c76fd955'
     };
     
     const category = exercise?.category?.toLowerCase() || 'chest';
@@ -201,7 +282,8 @@ const ExerciseDetailsModal = ({ visible, exercise, onClose }) => {
 
   const handleScroll = (event) => {
     const offsetX = event.nativeEvent.contentOffset.x;
-    const index = Math.round(offsetX / (width * 0.85));
+    const slideWidth = width * 0.85 + 10; // width + marginHorizontal
+    const index = Math.round(offsetX / slideWidth);
     setCurrentIndex(index);
   };
 
@@ -234,37 +316,38 @@ const ExerciseDetailsModal = ({ visible, exercise, onClose }) => {
           {loading ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color={colors.clr_brightblue} />
-              <Text style={styles.loadingText}>กำลังโหลดข้อมูล...</Text>
+              <Text style={styles.loadingText}>Loading data...</Text>
             </View>
           ) : error ? (
             <View style={styles.errorContainer}>
               <Text style={styles.errorText}>{error}</Text>
               <TouchableOpacity style={styles.retryButton} onPress={retry}>
-                <Text style={styles.retryButtonText}>ลองอีกครั้ง</Text>
+                <Text style={styles.retryButtonText}>Try Again</Text>
               </TouchableOpacity>
             </View>
           ) : (
             <>
-              {/* ชื่อท่าออกกำลังกาย */}
+              {/* Exercise Name */}
               <View style={styles.titleContainer}>
-                <Text style={styles.exerciseName}>{exercise?.name || 'ท่าออกกำลังกาย'}</Text>
+                <Text style={styles.exerciseName}>{exercise?.name || 'Exercise'}</Text>
               </View>
               
               {/* Image Carousel */}
               <View style={styles.imageCard}>
                 <FlatList
                   ref={flatListRef}
-                  data={[1, 2]} // 2 รูป: ภาพท่าออกกำลัง และ ภาพกล้ามเนื้อ
+                  data={[1, 2]} // 2 images: exercise image and muscle image
                   renderItem={renderImageItem}
                   horizontal
                   showsHorizontalScrollIndicator={false}
                   pagingEnabled
-                  snapToInterval={width * 0.85}
+                  snapToInterval={width * 0.85 + 10}
                   decelerationRate="fast"
                   onMomentumScrollEnd={handleScroll}
                   style={styles.carousel}
-                  contentContainerStyle={{ width: width * 0.85 * 2 }}
+                  contentContainerStyle={{ paddingRight: 10 }}
                   bounces={false}
+                  ItemSeparatorComponent={() => <View style={{ width: 20 }} />}
                 />
               </View>
               
@@ -432,11 +515,13 @@ const styles = StyleSheet.create({
   slideItemContainer: {
     height: width * 0.9,
     overflow: 'hidden',
-    backgroundColor: 'transparent',
+    backgroundColor: 'white',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 10,
     borderRadius: 15,
+    width: width * 0.85,
+    marginHorizontal: 0,
   },
   slideImage: {
     width: '100%',

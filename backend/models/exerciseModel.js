@@ -9,19 +9,45 @@ const exerciseSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    picture: {
-        type: String,
-        required: true,
-        default: "https://images.squarespace-cdn.com/content/v1/64c8035f53e9a56246c7c294/1723420893761-XYJVWOXL91SW5442P6RM/maxresdefault-29-1024x576.jpg"
-    },
     category: {
         type: String,
-        enum: ['chest', 'back', 'arms', 'abs', 'leg', 'shoulder'],
-        required: true
+        required: true,
     },
-   
+    picture: {
+        type: String,
+        required: false,
+        default: function() {
+            // set different images for each category
+            const categoryImages = {
+                'chest': 'https://www.burnthefatinnercircle.com/members/images/1683.jpg',
+                'back': 'https://www.burnthefatinnercircle.com/members/images/1684.jpg',
+                'arms': 'https://www.burnthefatinnercircle.com/members/images/1685.jpg',
+                'shoulders': 'https://www.burnthefatinnercircle.com/members/images/1686.jpg',
+                'leg': 'https://www.burnthefatinnercircle.com/members/images/1687.jpg',
+                'abs': 'https://www.burnthefatinnercircle.com/members/images/1689.jpg',
+                'glutes': 'https://www.burnthefatinnercircle.com/members/images/1688.jpg'
+            };
+            return categoryImages[this.category.toLowerCase()] || 'https://www.burnthefatinnercircle.com/members/images/1683.jpg';
+        }
+    },
+    target: {
+        type: String,
+        required: false,
+    },
+    secondaryMuscles: {
+        type: [String],
+        required: false,
+    },
+    instructions: {
+        type: [String],
+        required: false,
+    },
+    equipment: {
+        type: String,
+        required: false,
+    }
 });
 
-const exerciseModel = mongoose.model('exerciseModel', exerciseSchema);
+const exerciseModel = mongoose.model('Exercise', exerciseSchema);
 
 module.exports = exerciseModel;

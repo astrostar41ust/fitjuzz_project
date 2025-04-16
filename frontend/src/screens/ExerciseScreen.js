@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import Header from '../components/Header';
@@ -18,11 +18,46 @@ export default function ExerciseScreen({ navigation }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState(null);
 
-  const categories = ['All', 'Chest', 'Leg', 'ABS', 'Back', 'Arms', 'Shoulders', 'Glutes'];
+  const categories = ['All', 'Chest', 'Back', 'Shoulders', 'Arms', 'Leg', 'ABS', 'Cardio',];
 
   const openExerciseDetails = (exercise) => {
-    setSelectedExercise(exercise);
-    setModalVisible(true);
+    fetchExerciseDetails(exercise);
+  };
+
+  const fetchExerciseDetails = async (exercise) => {
+    const exerciseId = exercise.id || exercise._id;
+    
+    if (!exerciseId) {
+      setSelectedExercise(exercise);
+      setModalVisible(true);
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      console.log(`Fetching exercise details ID: ${exerciseId}`);
+      
+      const apiUrl = `${process.env.EXPO_PUBLIC_ENDPOINT_API}/api/user/exercises/getExerciseByIdFromAPI/${exerciseId}`;
+      console.log('API URL:', apiUrl);
+      
+      const response = await axios.get(apiUrl).catch(error => {
+        console.log('Error occurred, using existing data instead:', error.message);
+        return { data: exercise };
+      });
+      
+      console.log('Exercise details data received');
+      
+      const detailedExercise = response.data || exercise;
+      
+      setSelectedExercise(detailedExercise);
+      setModalVisible(true);
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching exercise details:', err);
+      setSelectedExercise(exercise);
+      setModalVisible(true);
+      setLoading(false);
+    }
   };
 
   const closeExerciseDetails = () => {
@@ -41,40 +76,40 @@ export default function ExerciseScreen({ navigation }) {
   const fetchExercises = async () => {
     try {
       setLoading(true);
-      console.log('Fetching exercises...');
-      console.log('API URL:', `${process.env.EXPO_PUBLIC_ENDPOINT_API}/api/user/getExercises`);
+      console.log('Fetching popular fitness exercises from API...');
       
-      const response = await axios.get(
-        `${process.env.EXPO_PUBLIC_ENDPOINT_API}/api/user/getExercises`
-      );
+      const apiUrl = `${process.env.EXPO_PUBLIC_ENDPOINT_API}/api/user/exercises/getPopularFitnessExercises`;
+      console.log('API URL:', apiUrl);
       
-      console.log('Received data:', response.data);
-      if (Array.isArray(response.data) && response.data.length > 0) {
-        console.log('Sample exercise:', response.data[0]);
-      } else {
-        console.log('No exercises found or data is not an array');
+      const response = await axios.get(apiUrl);
+      
+      console.log(`Data fetched successfully! Found ${response.data.length} exercises`);
+      if (response.data.length > 0) {
+        console.log('Sample data:', response.data[0]);
       }
+      
       setExercises(response.data);
       setLoading(false);
     } catch (err) {
-      console.error('Error fetching exercises:', err);
-      if (err.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        console.error('Error response data:', err.response.data);
-        console.error('Error response status:', err.response.status);
-        setError(`Unable to fetch exercises (${err.response.status}): ${JSON.stringify(err.response.data)}`);
-      } else if (err.request) {
-        // The request was made but no response was received
-        console.error('No response received:', err.request);
-        setError('Network error: No response from server. Check your connection.');
-      } else {
-        // Something happened in setting up the request that triggered an Error
-        console.error('Error config:', err.config);
-        setError(`Error: ${err.message}`);
-      }
-      setLoading(false);
+      handleError(err, 'exercises');
     }
+  };
+
+  // if fetch error
+  const handleError = (err, type) => {
+    console.error(`Error fetching ${type}:`, err);
+    if (err.response) {
+      console.error('Error response data:', err.response.data);
+      console.error('Error response status:', err.response.status);
+      setError(`Unable to fetch ${type} (${err.response.status}): ${JSON.stringify(err.response.data)}`);
+    } else if (err.request) {
+      console.error('No response received:', err.request);
+      setError('Network error: No response from server. Check your connection.');
+    } else {
+      console.error('Error config:', err.config);
+      setError(`Error: ${err.message}`);
+    }
+    setLoading(false);
   };
 
   const filterExercises = () => {
@@ -83,7 +118,11 @@ export default function ExerciseScreen({ navigation }) {
     // Filter by category
     if (selectedCategory !== 'All') {
       filtered = filtered.filter(
-        exercise => exercise.category.toLowerCase() === selectedCategory.toLowerCase()
+        exercise => {
+          // Check if category exists
+          const exerciseCategory = exercise.category || '';
+          return exerciseCategory.toLowerCase() === selectedCategory.toLowerCase();
+        }
       );
     }
     
@@ -117,20 +156,23 @@ export default function ExerciseScreen({ navigation }) {
 
   const exerciseGroups = groupExercisesByFirstLetter();
 
+  const categoriesContainerStyle = {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 2,
+    paddingVertical: 5,
+    justifyContent: 'center',
+    alignItems: 'center'
+  };
+
+  const exercisesContainerStyle = {
+    paddingBottom: 20
+  };
+
   return (
-    <View style={[ExerciseScreenStyle.container]}>
-{/*     
-      
-      <TouchableOpacity 
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-      >
-        <Ionicons name="arrow-back" size={24} color="white" />
-      </TouchableOpacity>
-       */}
-      <View style={[ExerciseScreenStyle.content]}>
+    <View style={ExerciseScreenStyle.container}>
+      <View style={ExerciseScreenStyle.content}>
         <View style={ExerciseScreenStyle.searchSection}>
-          {/* <Text style={ExerciseScreenStyle.sectionTitle}>EXERCISE</Text> */}
           <View style={ExerciseScreenStyle.searchBar}>
             <TextInput
               style={ExerciseScreenStyle.searchInput}
@@ -142,9 +184,14 @@ export default function ExerciseScreen({ navigation }) {
           </View>
         </View>
 
+        {/* Display all categories */}
         <View style={ExerciseScreenStyle.categoriesWrapper}>
-          <View style={ExerciseScreenStyle.categoriesRow}>
-            {categories.slice(0, 5).map((category) => (
+          <ScrollView 
+            horizontal={false}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={categoriesContainerStyle}
+          >
+            {categories.map((category) => (
               <TouchableOpacity
                 key={category}
                 style={[
@@ -163,38 +210,20 @@ export default function ExerciseScreen({ navigation }) {
                 </Text>
               </TouchableOpacity>
             ))}
-          </View>
-          <View style={[ExerciseScreenStyle.categoriesRow, {justifyContent: 'center'}]}>
-            {categories.slice(5).map((category) => (
-              <TouchableOpacity
-                key={category}
-                style={[
-                  ExerciseScreenStyle.categoryButton,
-                  selectedCategory === category && ExerciseScreenStyle.categoryButtonActive
-                ]}
-                onPress={() => setSelectedCategory(category)}
-              >
-                <Text 
-                  style={[
-                    ExerciseScreenStyle.categoryText,
-                    selectedCategory === category && ExerciseScreenStyle.categoryTextActive
-                  ]}
-                >
-                  {category}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          </ScrollView>
         </View>
 
         {loading ? (
-          <Text style={ExerciseScreenStyle.loadingText}>Loading...</Text>
+          <View style={ExerciseScreenStyle.loadingContainer}>
+            <ActivityIndicator size="large" color="#0000ff" />
+            <Text style={ExerciseScreenStyle.loadingText}>Loading exercises...</Text>
+          </View>
         ) : error ? (
           <Text style={ExerciseScreenStyle.errorText}>{error}</Text>
         ) : (
           <ScrollView 
-            style={ExerciseScreenStyle.exerciseList}
             showsVerticalScrollIndicator={false}
+            contentContainerStyle={exercisesContainerStyle}
           >
             {exerciseGroups.map(group => (
               <View key={group.letter}>
@@ -208,7 +237,7 @@ export default function ExerciseScreen({ navigation }) {
                     onPress={() => openExerciseDetails(exercise)}
                   >
                     <Image 
-                      source={{uri: exercise.picture || 'https://images.squarespace-cdn.com/content/v1/64c8035f53e9a56246c7c294/1723420893761-XYJVWOXL91SW5442P6RM/maxresdefault-29-1024x576.jpg'}} 
+                      source={{uri: exercise.picture || exercise.gifUrl || 'https://images.squarespace-cdn.com/content/v1/64c8035f53e9a56246c7c294/1723420893761-XYJVWOXL91SW5442P6RM/maxresdefault-29-1024x576.jpg'}} 
                       style={ExerciseScreenStyle.exerciseImage}
                     />
                     <View style={ExerciseScreenStyle.exerciseInfo}>
@@ -216,7 +245,7 @@ export default function ExerciseScreen({ navigation }) {
                         {exercise.name}
                       </Text>
                       <Text style={ExerciseScreenStyle.exerciseCategory}>
-                        {exercise.category.charAt(0).toUpperCase() + exercise.category.slice(1)}
+                        {exercise.category || 'Other'}
                       </Text>
                     </View>
                     <TouchableOpacity 
@@ -229,7 +258,6 @@ export default function ExerciseScreen({ navigation }) {
                 ))}
               </View>
             ))}
-            <View style={{height: 20}} />
           </ScrollView>
         )}
       </View>

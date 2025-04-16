@@ -1,17 +1,16 @@
 const mongoose = require('mongoose');
 
-// กำหนดโครงสร้างข้อมูลในรูปแบบ JSON เพื่อสะดวกในการใช้กับ frontend
 const exerciseDetailJson = {
-    "_id": "ObjectId", // ไอดีของรายละเอียดท่าออกกำลังกาย
-    "name": "String", // ชื่อท่าออกกำลังกาย
-    "description": "String", // รายละเอียดท่าออกกำลังกาย
-    "picture1": "String", // รูปหลักในหน้ารายละเอียด (รูปแรกใน slider)
-    "picture2": "String", // รูปที่สองในหน้ารายละเอียด (รูปที่สองใน slider)
-    "category": "String", // หมวดหมู่ (chest, back, arms, abs, leg, shoulder)
-    "steps": ["String"], // ขั้นตอนการทำท่าออกกำลังกาย
-    "targetMuscles": "String", // กล้ามเนื้อเป้าหมาย
-    "tips": "String", // เคล็ดลับในการทำท่าออกกำลังกาย
-    "__v": "Number" // เวอร์ชันของข้อมูล (ใช้สำหรับ Mongoose)
+    "_id": "ObjectId", 
+    "name": "String", 
+    "description": "String", 
+    "picture1": "String", 
+    "picture2": "String", 
+    "category": "String", 
+    "steps": ["String"], 
+    "targetMuscles": "String", 
+    "tips": "String", 
+    "__v": "Number" 
 };
 
 const exerciseDetailSchema = new mongoose.Schema({
@@ -57,12 +56,12 @@ const exerciseDetailSchema = new mongoose.Schema({
     }
 });
 
-// ฟังก์ชันแปลง Document เป็น JSON ที่ใช้ได้กับ Modal
+// function to convert Document to JSON that can be used by Modal
 exerciseDetailSchema.methods.toModalJSON = function() {
     // แปลง targetMuscles เป็นรูปแบบที่เหมาะสม
     let parsedTargetMuscles = this.targetMuscles;
     
-    // ถ้าเป็น string และมีรูปแบบที่แบ่งด้วย , ให้แปลงเป็น object
+    // if it's a string and has a format of , then convert to object
     if (typeof this.targetMuscles === 'string' && this.targetMuscles.includes(',')) {
         const muscleList = this.targetMuscles.split(',').map(m => m.trim());
         parsedTargetMuscles = {
@@ -87,7 +86,7 @@ exerciseDetailSchema.methods.toModalJSON = function() {
 
 const exerciseDetailModel = mongoose.model('exerciseDetailModel', exerciseDetailSchema);
 
-// ส่งออกทั้งโมเดลและโครงสร้าง JSON
+// export both model and JSON structure
 module.exports = { 
     exerciseDetailModel,
     exerciseDetailJson

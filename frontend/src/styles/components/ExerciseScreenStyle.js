@@ -48,32 +48,26 @@ const ExerciseScreenStyle = StyleSheet.create({
   
   
   categoriesWrapper: {
-    marginBottom: 5,
-    alignItems: 'center',
-  },
-  categoriesRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 10,
-    flexWrap: 'wrap',
+    marginBottom: 15,
+    marginTop: 5,
     width: '100%',
-    alignItems: 'center',
+    minHeight: 90,
   },
   categoryButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
     borderRadius: 20,
-    marginHorizontal: 4,
-    marginBottom: 4,
+    marginHorizontal: 5,
+    marginBottom: 10,
     backgroundColor: colors.clr_white,
-    minWidth: 50,
+    minWidth: 60,
     alignItems: 'center',
   },
   categoryButtonActive: {
     backgroundColor: colors.clr_blue,
   },
   categoryText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '500',
     color: '#333',
   },
@@ -81,10 +75,7 @@ const ExerciseScreenStyle = StyleSheet.create({
     color: colors.clr_white,
   },
 
-
-  exerciseList: {
-    flex: 1,
-  },
+  // Styles for exercise list items
   sectionHeader: {
     fontSize: 28,
     fontWeight: 'bold',
@@ -130,6 +121,12 @@ const ExerciseScreenStyle = StyleSheet.create({
     color: 'red',
     textAlign: 'center',
     marginTop: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 50,
   },
 })
 

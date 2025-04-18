@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-import { sizes, colors } from "../../styles/style";
+import { sizes, colors } from "../../../styles/style";
 
 export default function SupplementCategoryScreen({ navigation, route }) {
   const { category } = route.params;

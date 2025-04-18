@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, ScrollView, Image, StyleSheet } from "react-native";
 
-import { sizes, colors } from "../../styles/style";
+import { sizes, colors } from "../../../styles/style";
 
-export default function EncyclopediaDetailScreen({ navigation, route }) {
-  const { encyclopedia } = route.params;
+export default function SupplementDetailScreen({ navigation, route }) {
+  const { supplement } = route.params;
 
   return (
     <View style={[styles.container]}>
@@ -13,14 +13,14 @@ export default function EncyclopediaDetailScreen({ navigation, route }) {
           <Image
             source={{
               uri:
-              encyclopedia.image ||
+                supplement.image ||
                 "https://medlineplus.gov/images/AnabolicSteroids_share.jpg",
             }}
             style={styles.image}
           />
           <View style={styles.section}>
-            <Text style={styles.title}>{encyclopedia.name}</Text>
-            <Text style={styles.description}>{encyclopedia.description}</Text>
+            <Text style={styles.title}>{supplement.name}</Text>
+            <Text style={styles.description}>{supplement.description}</Text>
           </View>
         </View>
       </ScrollView>

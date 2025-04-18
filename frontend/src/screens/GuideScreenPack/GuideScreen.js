@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Header from '../components/Header';
-import GuideScreenStyle from '../styles/components/GuideScreenStyle';
+import Header from '../../components/Header';
+import GuideScreenStyle from '../../styles/components/GuideScreenStyle';
 import { useNavigation } from '@react-navigation/native';
 
 export default function GuideScreen() {

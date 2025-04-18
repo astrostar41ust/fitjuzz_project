@@ -1,11 +1,11 @@
-import * as React from 'react';
-import { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, StyleSheet, ActivityIndicator, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
-import Header from '../components/Header';
-import ExerciseScreenStyle from '../styles/components/ExerciseScreenStyle';
-import ExerciseDetailsModal from '../components/ExerciseDetailsModal';
+import Header from '../../components/Header';
+import ExerciseScreenStyle from '../../styles/components/ExerciseScreenStyle';
+import ExerciseDetailsModal from '../../components/ExerciseDetailsModal';
+import { useNavigation } from '@react-navigation/native';
 
 export default function ExerciseScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -18,7 +18,7 @@ export default function ExerciseScreen({ navigation }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState(null);
 
-  const categories = ['All', 'Chest', 'Back', 'Shoulders', 'Arms', 'Leg', 'ABS', 'Cardio',];
+  const categories = ['All', 'Chest', 'Back', 'Shoulders', 'Arms', 'Leg', 'Glutes', 'ABS'];
 
   const openExerciseDetails = (exercise) => {
     fetchExerciseDetails(exercise);

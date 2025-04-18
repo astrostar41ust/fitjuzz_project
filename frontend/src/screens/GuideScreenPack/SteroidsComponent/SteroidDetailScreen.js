@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, ScrollView, Image, StyleSheet } from "react-native";
+import { sizes, colors } from "../../../styles/style";
 
-import { sizes, colors } from "../../styles/style";
-
-export default function SupplementDetailScreen({ navigation, route }) {
-  const { supplement } = route.params;
+export default function SteroidDetailScreen({ route }) {
+  const { steroid } = route.params;
 
   return (
     <View style={[styles.container]}>
@@ -13,14 +12,14 @@ export default function SupplementDetailScreen({ navigation, route }) {
           <Image
             source={{
               uri:
-                supplement.image ||
+                steroid.image ||
                 "https://medlineplus.gov/images/AnabolicSteroids_share.jpg",
             }}
             style={styles.image}
           />
           <View style={styles.section}>
-            <Text style={styles.title}>{supplement.name}</Text>
-            <Text style={styles.description}>{supplement.description}</Text>
+            <Text style={styles.title}>{steroid.name}</Text>
+            <Text style={styles.description}>{steroid.description}</Text>
           </View>
         </View>
       </ScrollView>

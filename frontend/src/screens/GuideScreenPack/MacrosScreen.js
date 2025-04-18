@@ -1,8 +1,8 @@
-import * as React from 'react';
+import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Header from '../components/Header';
-import GuideScreenStyle from '../styles/components/GuideScreenStyle';
+import Header from '../../components/Header';
+import GuideScreenStyle from '../../styles/components/GuideScreenStyle';
 import { useNavigation } from '@react-navigation/native';
 
 export default function MacrosScreen() {
@@ -30,29 +30,27 @@ export default function MacrosScreen() {
       image: 'https://images.pexels.com/photos/33783/olive-oil-salad-dressing-cooking-olive.jpg?auto=compress&cs=tinysrgb&w=800',
       description: 'จำเป็นต่อการดูดซึมวิตามิน เช่น น้ำมัน อะโวคาโด ถั่ว',
       screen: 'Fat'
-    },
+    }
   ];
 
   return (
     <View style={GuideScreenStyle.container}>
-      
-      
-
+      <Header />
       
       <ScrollView 
         style={GuideScreenStyle.content} 
         contentContainerStyle={GuideScreenStyle.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        <View style={GuideScreenStyle.titleSection}>
-          <Text style={GuideScreenStyle.mainTitle}>Macronutrients</Text>
-        </View>
-        
+ 
         {macroCategories.map((category) => (
           <TouchableOpacity 
             key={category.id}
             style={GuideScreenStyle.categoryCard}
-            onPress={() => navigation.navigate(category.screen)}
+            onPress={() => navigation.navigate(category.screen, {
+              category: category.id,
+              title: category.title
+            })}
           >
             <Image
               source={{ uri: category.image }}

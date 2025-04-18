@@ -10,8 +10,8 @@ import {
   StyleSheet,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, sizes } from "../../styles/style";
-import GuideScreenStyle from "../../styles/components/GuideScreenStyle";
+import { colors, sizes } from "../../../styles/style";
+import GuideScreenStyle from "../../../styles/components/GuideScreenStyle";
 
 export default function Encyclopedia({ navigation }) {
   const [searchQuery, setSearchQuery] = useState("");

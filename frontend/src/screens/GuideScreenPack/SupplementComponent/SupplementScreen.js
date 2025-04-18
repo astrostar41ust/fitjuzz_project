@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   View,
   Text,
@@ -9,8 +10,8 @@ import {
   StyleSheet,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, sizes } from "../../styles/style";
-import GuideScreenStyle from "../../styles/components/GuideScreenStyle";
+import { colors, sizes } from "../../../styles/style";
+import GuideScreenStyle from "../../../styles/components/GuideScreenStyle";
 
 export default function SupplementScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState("");

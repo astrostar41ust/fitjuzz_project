@@ -62,7 +62,7 @@ export default function CarbScreen() {
   const handleSort = (newSortType) => {
     setSortType(newSortType);
     setFilterModalVisible(false);
-    // หากมีผลการค้นหาอยู่แล้ว ให้เรียงลำดับตัวนั้น
+    
     if (searching && searchResults.length > 0) {
       const sortedResults = sortFoods([...searchResults], newSortType);
       setSearchResults(sortedResults);
@@ -98,7 +98,6 @@ export default function CarbScreen() {
         sortedFoods.sort((a, b) => (a.nutritionPer100g?.calories || 0) - (b.nutritionPer100g?.calories || 0));
         break;
       default:
-        // ค่าเริ่มต้น ไม่ต้องเรียงลำดับ
         break;
     }
     
@@ -149,7 +148,7 @@ export default function CarbScreen() {
         {searching ? (
           <FoodCategoryList
             categoryName="ผลการค้นหา"
-            apiPath="/mock-path" // ไม่ได้ใช้เพราะเราส่งข้อมูลโดยตรง
+            apiPath="/mock-path" 
             initialFoods={searchResults}
             macroColor="#388E3C"
             emptyMessage="ไม่พบข้อมูลอาหารที่ตรงกับคำค้นหา"
@@ -173,7 +172,6 @@ export default function CarbScreen() {
         )}
       </View>
 
-      {/* Filter Modal */}
       <Modal
         visible={filterModalVisible}
         transparent={true}

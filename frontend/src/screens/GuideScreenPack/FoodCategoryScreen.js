@@ -13,7 +13,7 @@ export default function FoodCategoryScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   
-  // เพิ่มตัวแปรสำหรับการแบ่งหน้า
+  // add variable for pagination
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
@@ -21,11 +21,11 @@ export default function FoodCategoryScreen() {
   const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
-    // ถ้าไม่มีข้อมูลเริ่มต้น ให้ดึงข้อมูลจาก API
+    // if there is no initial data, fetch data from API
     resetAndFetch();
   }, [category]);
 
-  // รีเซ็ตการแบ่งหน้าและดึงข้อมูลใหม่
+  // reset pagination and fetch new data
   const resetAndFetch = () => {
     setPage(1);
     setFoods([]);
@@ -44,12 +44,12 @@ export default function FoodCategoryScreen() {
       let response;
       
       if (category) {
-        // ดึงข้อมูลตามหมวดหมู่
+        // fetch data by category
         response = await axios.get(
           `${process.env.EXPO_PUBLIC_ENDPOINT_API}/api/user/foods/category/${category}?page=${pageNum}&limit=${limit}`
         );
       } else {
-        // ดึงข้อมูลทั้งหมด
+        // fetch all data
         response = await axios.get(
           `${process.env.EXPO_PUBLIC_ENDPOINT_API}/api/user/foods?page=${pageNum}&limit=${limit}`
         );
@@ -68,7 +68,7 @@ export default function FoodCategoryScreen() {
       setError(null);
     } catch (err) {
       console.error(`Error fetching foods:`, err);
-      setError(`ไม่สามารถดึงข้อมูลอาหาร${title ? ` ประเภท ${title}` : ''} ได้`);
+      setError(`can't fetch food data${title ? ` category ${title}` : ''}`);
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -129,7 +129,7 @@ export default function FoodCategoryScreen() {
       />
       <View style={styles.foodInfo}>
         <Text style={styles.foodName}>{item.name}</Text>
-        <Text style={styles.servingSize}>{item.servingSize || '100 กรัม'}</Text>
+        <Text style={styles.servingSize}>{item.name === 'ขนมปังแผ่น' ? '1 แผ่น' : (item.servingSize || '100 กรัม')}</Text>
         
         <View style={styles.macroContainer}>
           <View style={styles.macroItem}>

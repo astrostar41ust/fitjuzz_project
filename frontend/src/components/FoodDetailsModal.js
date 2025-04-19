@@ -17,37 +17,37 @@ const { width, height } = Dimensions.get('window');
 const FoodDetailsModal = ({ visible, food, onClose }) => {
   if (!food) return null;
   
-  console.log('Food data received in modal:', food); // เพิ่ม log เพื่อดูข้อมูลที่ได้รับ
+  console.log('Food data received in modal:', food); // add log to see the data received
   
   const getCategoryColor = (category) => {
     switch (category) {
       case 'protein_rich':
       case 'protein':
-        return '#E53935'; // เข้มขึ้นจาก Red
+        return '#E53935'; //
       case 'vegetables':
-        return '#2E7D32'; // เข้มขึ้นจาก Green
+        return '#2E7D32'; // 
       case 'fruits':
-        return '#EF6C00'; // เข้มขึ้นจาก Orange
+        return '#EF6C00'; // 
       case 'grains':
       case 'carb':
-        return '#F9A825'; // เข้มขึ้นจาก Yellow
+        return '#F9A825'; // 
       case 'dairy':
-        return '#1565C0'; // เข้มขึ้นจาก Blue
+        return '#1565C0'; // 
       case 'nuts_seeds':
-        return '#5D4037'; // เข้มขึ้นจาก Brown
+        return '#5D4037'; // 
       case 'legumes':
-        return '#512DA8'; // เข้มขึ้นจาก Purple
+        return '#512DA8'; // 
       case 'oils_fats':
       case 'fat':
-        return '#F57F17'; // เข้มขึ้นจาก Yellow
+        return '#F57F17'; // 
       case 'beverages':
-        return '#00695C'; // เข้มขึ้นจาก Teal
+        return '#00695C'; // 
       case 'herbs_spices':
-        return '#33691E'; // เข้มขึ้นจาก Light Green
+        return '#33691E'; // 
       case 'sweets':
-        return '#C2185B'; // เข้มขึ้นจาก Pink
+        return '#C2185B'; // 
       default:
-        return '#455A64'; // เข้มขึ้นจาก Blue Grey
+        return '#455A64'; // 
     }
   };
 
@@ -87,19 +87,19 @@ const FoodDetailsModal = ({ visible, food, onClose }) => {
   const getNutrientColor = (nutrientType) => {
     switch (nutrientType) {
       case 'protein':
-        return '#E53935'; // เข้มขึ้น
+        return '#E53935'; // 
       case 'carbs':
-        return '#F9A825'; // เข้มขึ้น
+        return '#F9A825'; // 
       case 'fat':
-        return '#1565C0'; // เข้มขึ้น
+        return '#1565C0'; // 
       default:
-        return '#455A64'; // เข้มขึ้น
+        return '#455A64'; // 
     }
   };
 
-  // ตรวจสอบรูปแบบข้อมูลโภชนาการตามโครงสร้างใน MongoDB
+  // check the data format of the nutrition according to the structure in MongoDB
   const getNutritionValue = () => {
-    // เช็คว่ามีรูปแบบข้อมูลแบบใด - ให้ความสำคัญกับ nutritionPer100g ก่อน
+    // check the data format of the nutrition according to the structure in MongoDB
     if (food.nutritionPer100g) {
       return food.nutritionPer100g;
     } else if (food.nutrition) {
@@ -107,7 +107,7 @@ const FoodDetailsModal = ({ visible, food, onClose }) => {
     } else if (food.nutrients) {
       return food.nutrients;
     } else {
-      // หากไม่มีรูปแบบที่คาดไว้ ให้ตรวจสอบว่ามีค่าทางโภชนาการแบบตรงๆ ใน food หรือไม่
+      // if there is no the expected format, check if there is the nutrition value in food
       const nutrition = {
         calories: food.calories || 0,
         protein: food.protein || 0,
@@ -122,13 +122,13 @@ const FoodDetailsModal = ({ visible, food, onClose }) => {
         potassium: food.potassium || 0
       };
       
-      // ตรวจสอบว่ามีค่าอย่างน้อย 1 ค่าที่ไม่ใช่ 0 หรือไม่
+      // check if there is at least 1 value that is not 0
       const hasNonZeroValue = Object.values(nutrition).some(val => val !== 0);
       
       if (hasNonZeroValue) {
         return nutrition;
       } else {
-        // กรณีไม่มีค่าใดๆ ให้ใช้ค่าเริ่มต้น
+        // if there is no value, use the default value
         return {
           calories: 0,
           protein: 0,
@@ -180,9 +180,9 @@ const FoodDetailsModal = ({ visible, food, onClose }) => {
               
               <View style={styles.calorieContainer}>
                 <View style={styles.calorieBox}>
-                  <Text style={styles.calorieValue}>{nutrition.calories}</Text>
-                  <Text style={styles.calorieUnit}>แคลอรี่</Text>
-                  <Text style={styles.servingSize}>ต่อ 100 กรัม</Text>
+                  <Text style={styles.calorieValue}>{food.nutritionPer100g?.calories || 0}</Text>
+                  <Text style={styles.calorieLabel}>แคลอรี่</Text>
+                  <Text style={styles.servingSize}>ต่อ {food.name === 'ขนมปังแผ่น' ? '1 แผ่น' : '100 กรัม'}</Text>
                 </View>
               </View>
 
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#212121',
   },
-  calorieUnit: {
+  calorieLabel: {
     fontSize: 16,
     color: '#757575',
     marginTop: 2,

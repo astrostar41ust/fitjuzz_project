@@ -10,6 +10,7 @@ import {
   TextInput,
   FlatList,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import styles, { colors, sizes } from "../styles/style";
 import NoteScreenStyle from "../styles/components/NoteScreenStyle";
@@ -25,6 +26,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { jwtDecode } from "jwt-decode";
 import Icon from "react-native-vector-icons/FontAwesome";
 import CustomCheckbox from "../components/CustomCheckbox";
+import CategoryButtons from "../components/CategoryButtons";
 
 export default function NoteScreen({}) {
   const [error, setError] = useState("");
@@ -44,6 +46,7 @@ export default function NoteScreen({}) {
   const [isAddingNewBox, setIsAddingNewBox] = useState(false);
   const [databaseExercises, setDatabaseExercises] = useState([]);
   const [storeDatabaseExercises, setDatabaseStoreExercises] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [isStartCreateWorkoutVisible, setIsCreateWorkoutVisible] = useState(1);
   const [isNoteVisible, setIsNoteVisible] = useState(0);
@@ -52,11 +55,12 @@ export default function NoteScreen({}) {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isSelected, setSelection] = useState(false);
+  const [selectedExercises, setSelectedExercises] = useState({});
 
   const handleSearch = (text) => {
     setSearchQuery(text);
     if (text.length > 0) {
-      const newData = databaseExercises.filter((item) =>
+      const newData = storeDatabaseExercises.filter((item) =>
         item.name.toLowerCase().includes(text.toLowerCase())
       );
       setDatabaseExercises(newData);
@@ -64,20 +68,102 @@ export default function NoteScreen({}) {
       setDatabaseExercises(storeDatabaseExercises);
     }
   };
+  
   useEffect(() => {
     fetchExercise();
   }, []);
 
+  useEffect(() => {
+    if (selectedCategory !== 'all') {
+      console.log(`filtering: ${selectedCategory}`);
+      
+      const filteredData = storeDatabaseExercises.filter(
+        (item) => {
+          if (!item.category) return false;
+          const lowerCaseCategory = item.category.toLowerCase();
+          
+          if (selectedCategory.toLowerCase() === 'shoulder') {
+            const isMatch = lowerCaseCategory === 'shoulder' || lowerCaseCategory === 'shoulders';
+            if (isMatch) {
+              console.log(`found: ${item.name}, category: ${item.category}`);
+            }
+            return isMatch;
+          }
+          
+          return lowerCaseCategory === selectedCategory.toLowerCase();
+        }
+      );
+      
+      console.log(`found ${filteredData.length} exercises`);
+      setDatabaseExercises(filteredData);
+    } else {
+      setDatabaseExercises(storeDatabaseExercises);
+    }
+  }, [selectedCategory]);
+
   const fetchExercise = async () => {
     try {
-      const response = await axios.get(
-        `${process.env.EXPO_PUBLIC_ENDPOINT_API}/api/user/getExercises`
-      );
-
-      setDatabaseExercises(response.data);
-      setDatabaseStoreExercises(response.data);
+      setLoading(true);
+      setError("");
+      
+      const cachedExercises = await AsyncStorage.getItem('cachedExercises');
+      
+      if (cachedExercises) {
+        try {
+          const exercisesData = JSON.parse(cachedExercises);
+          console.log('Using cached exercises data');
+          
+          const shoulderExercises = exercisesData.filter(ex => {
+            return ex.category && 
+                 (ex.category.toLowerCase() === 'shoulder' || 
+                  ex.category.toLowerCase() === 'shoulders');
+          });
+          
+          console.log(`number of exercises in shoulder category: ${shoulderExercises.length}`);
+          if (shoulderExercises.length > 0) {
+            console.log('example exercises in shoulder category:');
+            shoulderExercises.slice(0, 3).forEach(ex => {
+              console.log(`- ${ex.name} (${ex.category})`);
+            });
+          }
+          
+          setDatabaseExercises(exercisesData);
+          setDatabaseStoreExercises(exercisesData);
+          setLoading(false);
+        } catch (e) {
+          console.error('Error parsing cached exercises:', e);
+          await AsyncStorage.removeItem('cachedExercises');
+        }
+      }
+      
+      console.log('Fetching popular fitness exercises from API...');
+      const apiUrl = `${process.env.EXPO_PUBLIC_ENDPOINT_API}/api/user/exercises/getPopularFitnessExercises`;
+      console.log('API URL:', apiUrl);
+      
+      const response = await axios.get(apiUrl);
+      
+      if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+        console.log(`Data fetched successfully! Found ${response.data.length} exercises`);
+        
+        await AsyncStorage.setItem('cachedExercises', JSON.stringify(response.data));
+        
+        setDatabaseExercises(response.data);
+        setDatabaseStoreExercises(response.data);
+      } else {
+        console.log('API response did not contain valid exercise data');
+        setError("can't fetch exercises");
+        setErrorLoading(1);
+      }
+      
+      setLoading(false);
     } catch (error) {
       console.error("Error fetching exercises:", error);
+      
+      if (databaseExercises.length === 0) {
+        setError("can't fetch exercises");
+        setErrorLoading(1);
+      }
+      setLoading(false);
     }
   };
 
@@ -85,8 +171,7 @@ export default function NoteScreen({}) {
     const selectedExercises = exercisesBox.map((ex) => ex.name);
     const filteredExercises = databaseExercises.filter(
       (ex) =>
-        (!selectedExercises.includes(ex.name) || ex.name === "Exercise") &&
-        (selectedCategory === "all" || ex.category === selectedCategory)
+        (!selectedExercises.includes(ex.name) || ex.name === "Exercise")
     );
     return filteredExercises;
   };
@@ -123,12 +208,17 @@ export default function NoteScreen({}) {
   };
 
   const handleSelectOneExercise = (exerciseName) => {
+    
+    const exerciseData = storeDatabaseExercises.find(ex => ex.name === exerciseName) || { name: exerciseName };
+    
     if (isAddingNewBox) {
       setExercisesBox([
         ...exercisesBox,
         {
           id: Date.now(),
           name: exerciseName,
+          category: exerciseData.category || '',
+          picture: exerciseData.picture || '',
           sets: [{ setNumber: 1, weight: 0, reps: 0, timer: 0 }],
         },
       ]);
@@ -137,7 +227,12 @@ export default function NoteScreen({}) {
       setExercisesBox(
         exercisesBox.map((exercise) =>
           exercise.id === currentExerciseId
-            ? { ...exercise, name: exerciseName }
+            ? { 
+                ...exercise, 
+                name: exerciseName,
+                category: exerciseData.category || exercise.category || '',
+                picture: exerciseData.picture || exercise.picture || '',
+              }
             : exercise
         )
       );
@@ -149,17 +244,20 @@ export default function NoteScreen({}) {
   };
 
   const handleSelectMultiExercise = (exerciseNames) => {
-    setExercisesBox((prev) => {
-      return [
-        { ...prev[0], name: exerciseNames[0] }, // Update first box
-        ...prev.slice(1), // Keep other existing boxes
-        ...exerciseNames.slice(1).map((name) => ({
+    if (exerciseNames.length > 0) {
+      const exerciseBoxes = exerciseNames.map(name => {
+        const exerciseData = storeDatabaseExercises.find(ex => ex.name === name) || { name };
+        return {
           id: Date.now() + Math.random(),
           name: name,
+          category: exerciseData.category || '',
+          picture: exerciseData.picture || '',
           sets: [{ setNumber: 1, weight: 0, reps: 0, timer: 0 }],
-        })),
-      ];
-    });
+        };
+      });
+      
+      setExercisesBox(exerciseBoxes);
+    }
 
     setIsAddingNewBox(false);
     setSelection(!isSelected);
@@ -196,7 +294,6 @@ export default function NoteScreen({}) {
       setErrorLoading(0);
     }
 
-    // ✅ Ensure state updates only for the current exercise
     setExercisesBox((prevExercises) =>
       prevExercises.map((exercise, exIdx) =>
         exIdx === currentExerciseIndex
@@ -363,25 +460,32 @@ export default function NoteScreen({}) {
     }
   };
 
-  const [selectedExercises, setSelectedExercises] = useState({});
-
   // Toggle selection for a single exercise
   const toggleSelection = (exerciseName) => {
-    setSelectedExercises((prev) => ({
+    setSelectedExercises(prev => ({
       ...prev,
-      [exerciseName]: !prev[exerciseName],
+      [exerciseName]: !prev[exerciseName]
     }));
   };
 
   const handleDone = () => {
-    const selectedExerciseNames = Object.keys(selectedExercises).filter(
-      (name) => selectedExercises[name]
-    );
-
-    console.log(selectedExerciseNames);
-
-    handleSelectMultiExercise(selectedExerciseNames);
-
+    const selectedNames = Object.keys(selectedExercises).filter(name => selectedExercises[name]);
+    
+    if (selectedNames.length === 0) {
+      Alert.alert("กรุณาเลือกการออกกำลังกาย", "โปรดเลือกการออกกำลังกายอย่างน้อย 1 รายการ");
+      return;
+    }
+    
+    if (selectedNames.length === 1) {
+      handleSelectOneExercise(selectedNames[0]);
+    } else {
+      handleSelectMultiExercise(selectedNames);
+    }
+    
+    // Reset selections after adding
+    setSelectedExercises({});
+    
+    // เปลี่ยนหน้าไปยังหน้า Note
     setIsModalStartVisible(false);
     setIsCreateWorkoutVisible(false);
     setIsNoteVisible(true);
@@ -488,68 +592,70 @@ export default function NoteScreen({}) {
                     </TouchableOpacity>
                   )}
                 </View>
-                <View style={[NoteScreenStyle.modal_category_box]}>
-                  {[
-                    "all",
-                    "chest",
-                    "back",
-                    "shoulder",
-                    "arms",
-                    "abs",
-                    "leg",
-                  ].map((category) => (
-                    <TouchableOpacity
-                      key={category}
-                      style={[
-                        NoteScreenStyle.modal_category_inside,
-                        {
-                          backgroundColor:
-                            selectedCategory === category
-                              ? colors.clr_blue
-                              : colors.clr_gray,
-                        },
-                      ]}
-                      onPress={() => setSelectedCategory(category)}
+                
+                <CategoryButtons 
+                  selectedCategory={selectedCategory}
+                  setSelectedCategory={setSelectedCategory}
+                />
+
+                {loading ? (
+                  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+                    <ActivityIndicator size="large" color={colors.clr_blue} />
+                    <Text style={{ marginTop: 10, fontSize: 16, color: colors.clr_gray }}>กำลังโหลดรายการออกกำลังกาย...</Text>
+                  </View>
+                ) : getAvailableExercises().length === 0 ? (
+                  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+                    <IconFontAwesome5 
+                      name={"dumbbell"}
+                      size={40}
+                      color={colors.clr_gray}
+                      style={{ marginBottom: 10 }}
+                    />
+                    <Text style={{ fontSize: 16, color: colors.clr_gray, textAlign: 'center' }}>
+                      ไม่พบรายการออกกำลังกายที่คุณต้องการ
+                    </Text>
+                    <TouchableOpacity 
+                      style={{ 
+                        marginTop: 15,
+                        padding: 10,
+                        backgroundColor: colors.clr_blue,
+                        borderRadius: 8 
+                      }}
+                      onPress={fetchExercise}
                     >
-                      <Text
+                      <Text style={{ color: 'white', fontWeight: 'bold' }}>ลองใหม่อีกครั้ง</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <FlatList
+                    data={getAvailableExercises()}
+                    showsVerticalScrollIndicator={false}
+                    keyExtractor={(item) => item.name || item.id || Math.random().toString()}
+                    renderItem={({ item }) => (
+                      <TouchableOpacity
+                        onPress={() => toggleSelection(item.name)}
                         style={[
-                          NoteScreenStyle.modal_category_inside_text,
-                          {
-                            color:
-                              selectedCategory === category
-                                ? colors.clr_white
-                                : colors.clr_black,
-                          },
+                          NoteScreenStyle.exercisecard
                         ]}
                       >
-                        {category.charAt(0).toUpperCase() + category.slice(1)}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
+                        <View style={styles.checkboxContainer}>
+                          <CustomCheckbox
+                            value={!!selectedExercises[item.name]}
+                            setValue={() => toggleSelection(item.name)}
+                          />
+                        </View>
 
-                <FlatList
-                  data={getAvailableExercises()}
-                  showsVerticalScrollIndicator={false}
-                  keyExtractor={(item) => item.name}
-                  renderItem={({ item }) => (
-                    <TouchableOpacity
-                      onPress={() => toggleSelection(item.name)}
-                      style={[NoteScreenStyle.exercisecard]}
-                    >
-                      <CustomCheckbox
-                        value={!!selectedExercises[item.name]}
-                        setValue={() => toggleSelection(item.name)}
-                      ></CustomCheckbox>
-
-                      <ExerciseCard
-                        name={item.name}
-                        category={item.category}
-                        picture={item.picture}
-                      />
-                    </TouchableOpacity>
-                  )}
-                />
+                        <View style={styles.exerciseCardWrapper}>
+                          <ExerciseCard
+                            name={item.name}
+                            category={item.category}
+                            picture={item.picture}
+                          />
+                        </View>
+                      </TouchableOpacity>
+                    )}
+                  />
+                )}
 
                 <TouchableOpacity
                   style={[
@@ -757,45 +863,11 @@ export default function NoteScreen({}) {
                     </TouchableOpacity>
                   )}
                 </View>
-                <View style={[NoteScreenStyle.modal_category_box]}>
-                  {[
-                    "all",
-                    "chest",
-                    "back",
-                    "shoulder",
-                    "arms",
-                    "abs",
-                    "leg",
-                  ].map((category) => (
-                    <TouchableOpacity
-                      key={category}
-                      style={[
-                        NoteScreenStyle.modal_category_inside,
-                        {
-                          backgroundColor:
-                            selectedCategory === category
-                              ? colors.clr_blue
-                              : colors.clr_gray,
-                        },
-                      ]}
-                      onPress={() => setSelectedCategory(category)}
-                    >
-                      <Text
-                        style={[
-                          NoteScreenStyle.modal_category_inside_text,
-                          {
-                            color:
-                              selectedCategory === category
-                                ? colors.clr_white
-                                : colors.clr_black,
-                          },
-                        ]}
-                      >
-                        {category.charAt(0).toUpperCase() + category.slice(1)}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
+                
+                <CategoryButtons 
+                  selectedCategory={selectedCategory}
+                  setSelectedCategory={setSelectedCategory}
+                />
 
                 <FlatList
                   data={getAvailableExercises()}
@@ -804,13 +876,24 @@ export default function NoteScreen({}) {
                   renderItem={({ item }) => (
                     <TouchableOpacity
                       onPress={() => handleSelectOneExercise(item.name)}
-                      style={[NoteScreenStyle.exercisecard]}
+                      style={[
+                        NoteScreenStyle.exercisecard
+                      ]}
                     >
-                      <ExerciseCard
-                        name={item.name}
-                        category={item.category}
-                        picture={item.picture}
-                      />
+                      <View style={styles.checkboxContainer}>
+                        <CustomCheckbox
+                          value={!!selectedExercises[item.name]}
+                          setValue={() => toggleSelection(item.name)}
+                        />
+                      </View>
+
+                      <View style={styles.exerciseCardWrapper}>
+                        <ExerciseCard
+                          name={item.name}
+                          category={item.category}
+                          picture={item.picture}
+                        />
+                      </View>
                     </TouchableOpacity>
                   )}
                 />

@@ -1,45 +1,51 @@
-import { StyleSheet, Text, View, Image } from "react-native";
 import React from "react";
-import { colors } from "../styles/style";
-import { sizes } from "../styles/style";
+import { View, Text, Image, StyleSheet } from "react-native";
+import { colors, sizes } from "../styles/style";
 
-const ExerciseCard = (props) => {
+export default function ExerciseCard(props) {
   return (
-    <View style={[ExerciseCardstyles.box]}>
-      <View style={{ justifyContent: "center", alignItems: "center" }}>
-        <Image
-          source={{uri: props.picture}}
-          style={{ width: 70, height: 50 }}
-        />
-      </View>
-      <View>
-        <Text style={[ExerciseCardstyles.text_name]}>{props.name}</Text>
-        <Text style={[ExerciseCardstyles.text_category]}>{props.category}</Text>
+    <View style={styles.exercise_box}>
+      <Image
+        source={{ uri: props.picture }}
+        style={styles.imageStyle}
+      />
+      <View style={styles.textContainer}>
+        <Text style={styles.text_name} numberOfLines={2} ellipsizeMode="tail">
+          {props.name}
+        </Text>
+        <Text style={styles.text_category}>{props.category}</Text>
       </View>
     </View>
   );
-};
+}
 
-export default ExerciseCard;
-
-const ExerciseCardstyles = StyleSheet.create({
-  box: {
-    flexDirection: 'row',
-    borderRadius: 10,
-    paddingHorizontal: 5,
-    paddingVertical: 5,
-    justifyContent: "center",
+const styles = StyleSheet.create({
+  exercise_box: {
+    width: "100%",
+    flexDirection: "row",
     alignItems: "center",
-    gap: 8
+    padding: 2,
+  },
+  imageStyle: {
+    width: 60,
+    height: 45,
+    borderRadius: 4,
+    marginRight: 8,
+  },
+  textContainer: {
+    flex: 1,
+    paddingRight: 5,
+    justifyContent: "center",
   },
   text_name: {
     fontSize: sizes.size_sm,
     fontWeight: "bold",
-    color: colors.clr_slate,
+    marginBottom: 2,
+    flexWrap: "wrap",
+    lineHeight: 18,
   },
   text_category: {
     fontSize: sizes.size_xs,
     color: "gray",
-    flexWrap: "wrap",
   },
 });

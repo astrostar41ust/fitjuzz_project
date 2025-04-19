@@ -8,7 +8,7 @@ export default function FoodDetailScreen() {
   const route = useRoute();
   const { food } = route.params;
 
-  // ฟังก์ชันชนิดของอาหารเป็นภาษาไทย
+  // function to get the category name in Thai
   const getCategoryName = (category) => {
     const categoryMap = {
       'protein': 'โปรตีน',
@@ -27,7 +27,7 @@ export default function FoodDetailScreen() {
     return categoryMap[category] || category;
   };
 
-  // ฟังก์ชันสีตามชนิดของอาหาร
+  // function to get the color of the category
   const getCategoryColor = (category) => {
     switch (category) {
       case 'protein':
@@ -59,7 +59,7 @@ export default function FoodDetailScreen() {
 
   return (
     <View style={styles.container}>
-      {/* ปุ่มย้อนกลับ */}
+      {/* back button */}
       <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}
@@ -68,13 +68,13 @@ export default function FoodDetailScreen() {
       </TouchableOpacity>
 
       <ScrollView style={styles.scrollView}>
-        {/* รูปภาพอาหาร */}
+        {/* food image */}
         <Image
           source={{ uri: food.image || 'https://via.placeholder.com/800x500/CCCCCC/888888?text=No+Image' }}
           style={styles.headerImage}
         />
         
-        {/* ข้อมูลหลัก */}
+        {/* main information */}
         <View style={styles.headerInfo}>
           <Text style={styles.foodName}>{food.name}</Text>
           <View style={[styles.categoryBadge, { backgroundColor: getCategoryColor(food.category) }]}>
@@ -82,28 +82,27 @@ export default function FoodDetailScreen() {
           </View>
         </View>
 
-        {/* แคลอรี่และสัดส่วนของสารอาหาร */}
         <View style={styles.nutritionContainer}>
           <View style={styles.calorieBox}>
             <Text style={styles.calorieValue}>{food.nutritionPer100g?.calories || 0}</Text>
             <Text style={styles.calorieLabel}>แคลอรี่</Text>
-            <Text style={styles.servingSize}>ต่อ {food.servingSize || '100 กรัม'}</Text>
+            <Text style={styles.servingSize}>ต่อ {food.name === 'ขนมปังแผ่น' ? '1 แผ่น' : (food.servingSize || '100 กรัม')}</Text>
           </View>
 
           <View style={styles.macrosContainer}>
-            {/* โปรตีน */}
+            {/* protein */}
             <View style={[styles.macroBox, styles.proteinBox]}>
               <Text style={styles.macroValue}>{food.nutritionPer100g?.protein || 0}g</Text>
               <Text style={styles.macroLabel}>โปรตีน</Text>
             </View>
 
-            {/* คาร์โบไฮเดรต */}
+            {/* carb */}
             <View style={[styles.macroBox, styles.carbBox]}>
               <Text style={styles.macroValue}>{food.nutritionPer100g?.carbohydrates || 0}g</Text>
               <Text style={styles.macroLabel}>คาร์โบไฮเดรต</Text>
             </View>
 
-            {/* ไขมัน */}
+            {/* fat */}
             <View style={[styles.macroBox, styles.fatBox]}>
               <Text style={styles.macroValue}>{food.nutritionPer100g?.fat || 0}g</Text>
               <Text style={styles.macroLabel}>ไขมัน</Text>
@@ -111,78 +110,78 @@ export default function FoodDetailScreen() {
           </View>
         </View>
 
-        {/* ข้อมูลโภชนาการโดยละเอียด */}
+        {/* detailed nutrition information */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>ข้อมูลโภชนาการโดยละเอียด</Text>
           
-          {/* แคลอรี่ */}
+          {/* calories */}
           <View style={styles.nutritionRow}>
-            <Text style={styles.nutritionLabel}>แคลอรี่</Text>
+            <Text style={styles.nutritionLabel}>calories</Text>
             <Text style={styles.nutritionValue}>{food.nutritionPer100g?.calories || 0} แคล</Text>
           </View>
           
-          {/* โปรตีน */}
+          {/* protein */}
           <View style={styles.nutritionRow}>
-            <Text style={styles.nutritionLabel}>โปรตีน</Text>
+            <Text style={styles.nutritionLabel}>protein</Text>
             <Text style={styles.nutritionValue}>{food.nutritionPer100g?.protein || 0} กรัม</Text>
           </View>
           
-          {/* คาร์โบไฮเดรต */}
+          {/* carb */}
           <View style={styles.nutritionRow}>
-            <Text style={styles.nutritionLabel}>คาร์โบไฮเดรตรวม</Text>
+            <Text style={styles.nutritionLabel}>carb</Text>
             <Text style={styles.nutritionValue}>{food.nutritionPer100g?.carbohydrates || 0} กรัม</Text>
           </View>
           
-          {/* ใยอาหาร */}
+          {/* fiber */}
           <View style={styles.nutritionRow}>
-            <Text style={styles.nutritionLabel}>ใยอาหาร</Text>
+            <Text style={styles.nutritionLabel}>fiber</Text>
             <Text style={styles.nutritionValue}>{food.nutritionPer100g?.fiber || 0} กรัม</Text>
           </View>
           
-          {/* น้ำตาล */}
+          {/* Sugar */}
           <View style={styles.nutritionRow}>
             <Text style={styles.nutritionLabel}>น้ำตาล</Text>
             <Text style={styles.nutritionValue}>{food.nutritionPer100g?.sugar || 0} กรัม</Text>
           </View>
           
-          {/* ไขมัน */}
+          {/* fat */}
           <View style={styles.nutritionRow}>
-            <Text style={styles.nutritionLabel}>ไขมันรวม</Text>
+            <Text style={styles.nutritionLabel}>fat</Text>
             <Text style={styles.nutritionValue}>{food.nutritionPer100g?.fat || 0} กรัม</Text>
           </View>
           
-          {/* ไขมันอิ่มตัว */}
+          {/* saturated fat */}
           <View style={styles.nutritionRow}>
-            <Text style={styles.nutritionLabel}>ไขมันอิ่มตัว</Text>
+            <Text style={styles.nutritionLabel}>saturated fat</Text>
             <Text style={styles.nutritionValue}>{food.nutritionPer100g?.saturatedFat || 0} กรัม</Text>
           </View>
           
-          {/* โคเลสเตอรอล */}
+          {/* cholesterol */}
           <View style={styles.nutritionRow}>
-            <Text style={styles.nutritionLabel}>โคเลสเตอรอล</Text>
+            <Text style={styles.nutritionLabel}>cholesterol</Text>
             <Text style={styles.nutritionValue}>{food.nutritionPer100g?.cholesterol || 0} มก.</Text>
           </View>
           
-          {/* โซเดียม */}
+          {/* sodium */}
           <View style={styles.nutritionRow}>
-            <Text style={styles.nutritionLabel}>โซเดียม</Text>
+            <Text style={styles.nutritionLabel}>sodium</Text>
             <Text style={styles.nutritionValue}>{food.nutritionPer100g?.sodium || 0} มก.</Text>
           </View>
           
-          {/* โพแทสเซียม */}
+          {/* potassium */}
           <View style={styles.nutritionRow}>
-            <Text style={styles.nutritionLabel}>โพแทสเซียม</Text>
+            <Text style={styles.nutritionLabel}>potassium</Text>
             <Text style={styles.nutritionValue}>{food.nutritionPer100g?.potassium || 0} มก.</Text>
           </View>
         </View>
 
-        {/* รายละเอียด */}
+        {/* details */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>รายละเอียด</Text>
+          <Text style={styles.sectionTitle}>details</Text>
           <Text style={styles.description}>{food.description || 'ไม่มีรายละเอียดเพิ่มเติม'}</Text>
         </View>
 
-        {/* ประโยชน์ */}
+        {/* health benefits */}
         {food.healthBenefits && food.healthBenefits.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>ประโยชน์ต่อสุขภาพ</Text>
@@ -195,7 +194,7 @@ export default function FoodDetailScreen() {
           </View>
         )}
 
-        {/* คุณสมบัติพิเศษ */}
+        {/* special properties */}
         {food.specialProperties && food.specialProperties.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>คุณสมบัติพิเศษ</Text>
@@ -209,10 +208,10 @@ export default function FoodDetailScreen() {
           </View>
         )}
 
-        {/* แท็ก */}
+        {/* tags */}
         {food.tags && food.tags.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>แท็ก</Text>
+            <Text style={styles.sectionTitle}>tags</Text>
             <View style={styles.tagContainer}>
               {food.tags.map((tag, index) => (
                 <View key={index} style={styles.tag}>
@@ -223,7 +222,7 @@ export default function FoodDetailScreen() {
           </View>
         )}
 
-        {/* พื้นที่ว่างด้านล่าง */}
+        {/* bottom space */}
         <View style={styles.bottomSpace} />
       </ScrollView>
     </View>

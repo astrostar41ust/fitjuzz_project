@@ -184,7 +184,7 @@ export default function ExerciseScreen({ navigation }) {
           </View>
         </View>
 
-        {/* Display all categories */}
+
         <View style={ExerciseScreenStyle.categoriesWrapper}>
           <ScrollView 
             horizontal={false}

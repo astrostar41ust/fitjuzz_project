@@ -115,6 +115,17 @@ const styles = StyleSheet.create({
     borderColor: 'black',
     width: 20,
     height: 20
+  },
+  checkboxContainer: {
+    marginLeft: 2,
+    marginRight: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 2,
+  },
+  exerciseCardWrapper: {
+    flex: 1,
+    flexDirection: 'row',
   }
 });
 
